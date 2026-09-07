@@ -1,0 +1,85 @@
+server {
+    listen ${PORT} default_server;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Gzip for Flutter assets
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json application/wasm;
+
+    # ---- Odoo reverse proxy (avoids browser CORS) ----
+    location /web/ {
+        proxy_pass https://hrms.odoo19e.tracencode.in/web/;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host hrms.odoo19e.tracencode.in;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Cookie $http_cookie;
+        proxy_pass_header Set-Cookie;
+        proxy_cookie_path / /;
+    }
+
+    location /jsonrpc {
+        proxy_pass https://hrms.odoo19e.tracencode.in/jsonrpc;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host hrms.odoo19e.tracencode.in;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Cookie $http_cookie;
+        proxy_pass_header Set-Cookie;
+    }
+
+    location /tnc/ {
+        proxy_pass https://hrms.odoo19e.tracencode.in/tnc/;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host hrms.odoo19e.tracencode.in;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Cookie $http_cookie;
+        proxy_read_timeout 86400;
+    }
+
+    location /websocket {
+        proxy_pass https://hrms.odoo19e.tracencode.in/websocket;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host hrms.odoo19e.tracencode.in;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+    }
+
+    location /longpolling {
+        proxy_pass https://hrms.odoo19e.tracencode.in/longpolling;
+        proxy_http_version 1.1;
+        proxy_ssl_server_name on;
+        proxy_set_header Host hrms.odoo19e.tracencode.in;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400;
+    }
+
+    # Flutter web SPA
+    location = /healthz {
+        add_header Content-Type text/plain;
+        return 200 'ok';
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
